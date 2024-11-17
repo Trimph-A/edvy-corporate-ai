@@ -1,0 +1,16 @@
+google:
+  service_account_file: "/home/karol/Downloads/quantum-genre-441911-m5-54a0876d02bf.json"
+  scopes:
+    - "https://www.googleapis.com/auth/calendar"
+    - "https://www.googleapis.com/auth/calendar.events.readonly"
+
+watsonx:
+  region: "eu-de"
+  api_key: "MVtsEQmbNqp67F9BqeGLqsf4kxaz-Xtd889rNHGSsWj-"
+  project_id: "c1c8ce83-8eaf-419a-b2ea-6858e9b89cb0"
+  model_id: "meta-llama/llama-3-1-8b-instruct"
+
+defaults:
+  decoding_method: "greedy"
+  max_new_tokens: 300
+  repetition_penalty: 1.1
