@@ -1,12 +1,11 @@
 import requests
-from langchain.llms.base import LLM
+from langchain.llms.base import LLM  # This import is needed for the class WatsonxLLM
 from langchain_core.runnables import Runnable
 from langchain.prompts import PromptTemplate  
 from langchain.agents import Tool
-from langchain.agents import initialize_agent, AgentType
+from langchain.agents import create_react_agent
 from .utils import load_config
 from schedule_manager.calendar_service import check_availability, schedule_meeting_event, check_group_availability
-
 
 # Load configuration for Watsonx
 config = load_config('config/config.yaml')
@@ -15,7 +14,6 @@ WATSONX_API_URL = f"https://{config['watsonx']['region']}.ml.cloud.ibm.com/ml/v1
 WATSONX_API_KEY = config['watsonx']['api_key']
 WATSONX_PROJECT_ID = config['watsonx']['project_id']
 WATSONX_MODEL_ID = config['watsonx']['model_id']
-
 
 def process_query_with_watsonx(user_input: str) -> str:
     """
@@ -78,15 +76,20 @@ class WatsonxLLM(LLM, Runnable):
 # LangChain initialization
 llm = WatsonxLLM()
 
-# Sample Prompt Template
+# Sample Prompt Template (including the required variables)
 prompt_template = PromptTemplate(
-    input_variables=["user_input"],
+    input_variables=["user_input", "agent_scratchpad", "tool_names", "tools"],
     template="""
     You are a virtual assistant. Your job is to assist the user in scheduling meetings.
 
     - If the user wants to schedule a meeting, check their availability and their group's availability.
     - Suggest an appropriate time if the preferred date and duration are unavailable.
     - Provide detailed responses with actions you plan to take.
+
+    Tools available: {tool_names}
+    Tools: {tools}
+    
+    Current agent state: {agent_scratchpad}
 
     User query: {user_input}
     """
@@ -111,10 +114,9 @@ tools = [
     )
 ]
 
-# Initialize LangChain agent
-agent = initialize_agent(
-    tools=tools,
+# Initialize LangChain agent using the correct function `create_react_agent`
+agent = create_react_agent(
     llm=llm,
-    agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-    verbose=True
+    tools=tools,
+    prompt=prompt_template
 )
